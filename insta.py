@@ -1,18 +1,26 @@
 import instaloader
 import pandas as pd
 
-
 loader = instaloader.Instaloader()
-# profile = instaloader.Profile.from_username(L.context, "sakshamchoudharyofficial")
-profile_username = "sakshamchoudharyofficial"
+profile_username = "beerbiceps"
 
+# Load the profile
 profile = instaloader.Profile.from_username(loader.context, profile_username)
-
 
 # Initialize a list to store post data
 data = []
 
+# Set the post limit
+post_limit = 291
+counter = 0
+
+# Set the batch size for saving
+batch_size = 50
+
 for post in profile.get_posts():
+    if counter >= post_limit:
+        break  # Exit the loop after reaching the post limit
+    
     # Determine post type using typename
     if post.typename == "GraphImage":
         post_type = "Photo"
@@ -31,14 +39,23 @@ for post in profile.get_posts():
         "Comments": post.comments,
         "Shares": post.video_view_count,  # Proxy for shares
         "Post Type": post_type,
-        "Creator": profile_username, 
+        "Creator": profile_username
     }
     data.append(post_data)
+    counter += 1  # Increment the counter
     print(post_data)  # For live feedback
 
-# Save the data to a CSV file
-output_file = f"{profile_username}_instagram_data.csv"
-df = pd.DataFrame(data)
-df.to_csv(output_file, index=False)
+    # Save to CSV after every batch of 50 posts
+    if counter % batch_size == 0 or counter == post_limit:
+        partial_output_file = f"{profile_username}_instagram_data_batch_{counter // batch_size}.csv"
+        df = pd.DataFrame(data)
+        df.to_csv(partial_output_file, index=False)
+        print(f"Batch saved to {partial_output_file}")
+        data = []  # Clear the data list for the next batch
 
-print(f"Data saved to {output_file}")
+# Save any remaining posts if the last batch was not a full 50 posts
+if data:
+    final_output_file = f"{profile_username}_instagram_data_batch_{(counter // batch_size) + 1}.csv"
+    df = pd.DataFrame(data)
+    df.to_csv(final_output_file, index=False)
+    print(f"Final batch saved to {final_output_file}")
