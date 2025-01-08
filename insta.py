@@ -31,6 +31,7 @@ for post in profile.get_posts():
         "Comments": post.comments,
         "Shares": post.video_view_count,  # Proxy for shares
         "Post Type": post_type,
+        "Creator": profile_username, 
     }
     data.append(post_data)
     print(post_data)  # For live feedback
