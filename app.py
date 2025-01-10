@@ -1,108 +1,65 @@
-import argparse
-import json
-from argparse import RawTextHelpFormatter
+from flask import Flask, request, render_template
 import requests
-from typing import Optional
-import warnings
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-
-try:
-    from langflow.load import upload_file
-except ImportError:
-    warnings.warn("Langflow provides a function to help you upload files to the flow. Please install langflow to use it.")
-    upload_file = None
-
-BASE_API_URL = "https://api.langflow.astra.datastax.com"
-LANGFLOW_ID = "d82f9e69-0085-4565-b516-0fdc65e458ae"
-FLOW_ID = "91c53020-0868-4ac6-a0ec-2560c75bc888"
-APPLICATION_TOKEN = ""
-ENDPOINT = ""  # You can set a specific endpoint name in the flow settings
-
-# Default tweaks
-TWEAKS = {
-    "ChatInput-twARP": {},
-    "Agent-eeeOw": {},
-    "AstraDBToolComponent-OQUdo": {},
-    "ChatOutput-bjBiv": {},
-    "Prompt-EFtZz": {}
-}
-
-def run_flow(
-    message: str,
-    endpoint: str,
-    output_type: str = "chat",
-    input_type: str = "chat",
-    tweaks: Optional[dict] = None,
-    application_token: Optional[str] = None
-) -> dict:
-    """
-    Run a flow with a given message and optional tweaks.
-    """
-    api_url = f"{BASE_API_URL}/lf/{LANGFLOW_ID}/api/v1/run/{endpoint}"
-
-    payload = {
-        "input_value": message,
-        "output_type": output_type,
-        "input_type": input_type,
-    }
-    headers = None
-    if tweaks:
-        payload["tweaks"] = tweaks
-    if application_token:
-        headers = {"Authorization": "Bearer " + application_token, "Content-Type": "application/json"}
-    response = requests.post(api_url, json=payload, headers=headers)
-    return response.json()
-
+import json
+# Initialize Flask application
 app = Flask(__name__)
-CORS(app)
+# Initialize messages list to store chat history
+messages = []
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    """
-    Flask route to handle chat requests.
-    """
-    user_message = request.json.get('message', '')
-    if not user_message:
-        return jsonify({"error": "Message is required"}), 400
-
+def call_langflow_api(question):
+    url = "https://api.langflow.astra.datastax.com/lf/d82f9e69-0085-4565-b516-0fdc65e458ae/api/v1/run/91c53020-0868-4ac6-a0ec-2560c75bc888"
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': ''
+    }
+    
+    payload = {
+        "input_value": question,
+        "output_type": "chat",
+        "input_type": "chat",
+        "tweaks": {
+            "ChatInput-twARP": {},
+            "Agent-eeeOw": {},
+            "AstraDBToolComponent-OQUdo": {},
+            "ChatOutput-bjBiv": {},
+            "Prompt-EFtZz": {}
+        }
+    }
+    
     try:
-        response = run_flow(
-            message=user_message,
-            endpoint=ENDPOINT or FLOW_ID,
-            tweaks=TWEAKS,
-            application_token=APPLICATION_TOKEN
-        )
-        return jsonify(response)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        response = requests.post(url, headers=headers, json=payload, stream=False)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error calling Langflow API: {e}")
+        return {"output_text": "Sorry, I encountered an error processing your request."}
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="""Run the server or execute a single flow.""", formatter_class=RawTextHelpFormatter)
-    parser.add_argument("--run_server", action="store_true", help="Run the Flask server")
-    parser.add_argument("--message", type=str, help="Run a single flow with this message", default=None)
-    parser.add_argument("--endpoint", type=str, default=ENDPOINT or FLOW_ID, help="The ID or the endpoint name of the flow")
-    parser.add_argument("--tweaks", type=str, help="JSON string representing the tweaks to customize the flow", default=json.dumps(TWEAKS))
-    parser.add_argument("--application_token", type=str, default=APPLICATION_TOKEN, help="Application Token for authentication")
-    args = parser.parse_args()
+@app.route('/ai_chatbot', methods=['GET', 'POST'])
+def ai_chatbot():
+    global messages
+    
+    if request.method == 'POST':
+        # Get the user's question from the form
+        question = request.form.get('question')
+        
+        if not question:
+            return render_template('aichatbot.html', messages=messages, 
+                                error="Please enter a question.")
+        
+        # Append the user's question to the messages list
+        messages.append({'sender': 'user', 'content': question})
+        
+        # Call the Langflow API
+        api_response = call_langflow_api(question)
+        print(api_response)
+        bot_response = api_response.get("output_text", 
+                                      "Sorry, I couldn't process your request.")
+        
+        # Append the bot's response to the messages list
+        messages.append({'sender': 'bot', 'content': bot_response})
+    
+    return render_template('aichatbot.html', messages=messages)
 
-    if args.run_server:
-        app.run(debug=True)
-    elif args.message:
-        try:
-            tweaks = json.loads(args.tweaks)
-        except json.JSONDecodeError:
-            raise ValueError("Invalid tweaks JSON string")
-
-        response = run_flow(
-            message=args.message,
-            endpoint=args.endpoint,
-            tweaks=tweaks,
-            application_token=args.application_token
-        )
-        print(json.dumps(response, indent=2))
-    else:
-        parser.print_help()
-
-
-#
+if __name__ == '__main__':
+    app.run(debug=True)
