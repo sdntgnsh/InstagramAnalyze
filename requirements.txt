@@ -1,2 +1,4 @@
 pandas
 instaloader
+flask
+flask_cors
