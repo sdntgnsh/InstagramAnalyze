@@ -1,2 +1,5 @@
 pandas
 instaloader
+flask
+flask_cors
+langflow
