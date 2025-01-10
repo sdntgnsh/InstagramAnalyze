@@ -6,9 +6,9 @@ The Instagram Analyzer is a project that analyzes your Instagram account and pro
 
 ## Screenshots
 
-![Screenshot 1](https://github.com/sdntgnsh/InstagramAnalyze/screenshots/s1.png?raw=true)
-![Screenshot 2](https://github.com/sdntgnsh/InstagramAnalyze/screenshots/s2.jpg?raw=true)
-![Screenshot 3](https://github.com/sdntgnsh/InstagramAnalyze/screenshots/s3.jpg?raw=true)
+![Screenshot 1](https://github.com/sdntgnsh/InstagramAnalyze/blob/main/screenshots/s1.png?raw=true)
+![Screenshot 2](https://github.com/sdntgnsh/InstagramAnalyze/blob/main/screenshots/s2.jpg?raw=true)
+![Screenshot 3](https://github.com/sdntgnsh/InstagramAnalyze/blob/main/screenshots/s3.jpg?raw=true)
 
 ## Features
 
