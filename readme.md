@@ -41,7 +41,7 @@ The Instagram Analyzer is a project that analyzes your Instagram account and pro
 * "Who are my most engaged followers?"
 * "What are the most common hashtags used in my posts?"
 
-### Prerequisites
+## Prerequisites
 
 * Python 3.8+
 * Node.js 14+
@@ -49,7 +49,7 @@ The Instagram Analyzer is a project that analyzes your Instagram account and pro
 * AstraDB instance (see [AstraDB documentation](https://docs.astradb.com/) for setup instructions)
 * Instagram API credentials (see [Instagram API documentation](https://developers.facebook.com/docs/instagram-api/) for setup instructions)
 
-### Setup
+## Setup
 
 1. Clone the repository: `git clone https://github.com/[your-username]/[your-repo-name].git`
 2. Create a virtual environment: `python -m venv venv`
