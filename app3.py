@@ -6,6 +6,11 @@ from typing import Optional
 import warnings
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+api_key = os.getenv("API_KEY")
 
 try:
     from langflow.load import upload_file
@@ -105,4 +110,3 @@ if __name__ == "__main__":
         parser.print_help()
 
 
-#
